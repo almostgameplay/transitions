@@ -1,9 +1,7 @@
-const i18n = require('i18n');
 const SceneList = require('SceneList');
-const TipsManager = require('TipsManager');
 
-const Transitions = require('transitions');
-const TransitionMaterials = require('transition-materials');
+import Transitions  from '../resources/transitions/transitions';
+import TransitionMaterials from '../resources/transitions/transition-materials';
 
 const MainScene = 'TestList.fire';
 
@@ -44,6 +42,7 @@ cc.Class({
 
         this.sceneIndex = 0;
         this.materialIndex = 0;
+        this.currentSceneIndex = this.sceneIndex;
     },
 
     _onSceneLaunched () {
@@ -60,7 +59,7 @@ cc.Class({
     },
 
     backToList: function () {
-        this.loadScene(scenes.length - 1);
+        this.loadScene(scenes.length - 1,this.materialIndex);
     },
 
     loadScene: function (sceneIndex, materialIndex) {
@@ -69,7 +68,8 @@ cc.Class({
         }
 
         this.currentSceneIndex = sceneIndex;
-
+        this.materialIndex = materialIndex;
+        // materialIndex = Math.floor(Math.random() * TransitionMaterials.length);
         if (typeof materialIndex === 'number') {
             let material = TransitionMaterials[materialIndex];
             if (material) {
@@ -101,7 +101,7 @@ cc.Class({
         if (this.currentSceneIndex >= scenes.length) {
             this.currentSceneIndex = 0;
         }
-        this.loadScene(this.currentSceneIndex);
+        this.loadScene(this.currentSceneIndex,this.materialIndex);
     },
 
     prevScene () {
@@ -109,6 +109,6 @@ cc.Class({
         if (this.currentSceneIndex < 0) {
             this.currentSceneIndex = scenes.length - 1;
         }
-        this.loadScene(this.currentSceneIndex);
+        this.loadScene(this.currentSceneIndex,this.materialIndex);
     },
 });

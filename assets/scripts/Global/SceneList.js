@@ -1,5 +1,6 @@
 const TipsManager = require('TipsManager');
-const TransitionMaterials = require('transition-materials');
+import TransitionMaterials from '../../resources/transitions/transition-materials';
+// const TransitionMaterials = require('transition-materials');
 
 const SceneList = cc.Class({
     extends: cc.Component,
@@ -39,7 +40,10 @@ const SceneList = cc.Class({
         this.updateInterval = 0.2;
         this.lastContentPosY = 0; // use this variable to detect if we are scrolling up or down
         TipsManager.init();
-        this.initList();
+        setTimeout(() => {
+            this.initList()
+        }, 300);
+       
     },
 
     // use this for initialization

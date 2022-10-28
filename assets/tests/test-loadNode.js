@@ -1,4 +1,4 @@
-let Transitions = require('transitions');
+import Transitions  from '../resources/transitions/transitions';
 
 
 cc.Class({

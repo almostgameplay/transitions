@@ -497,7 +497,7 @@
     "_id": "ecLCT9KDhE5JGNZuseGu/R"
   },
   {
-    "__type__": "24cfdwVNiRAr45L2SE+u3Ib",
+    "__type__": "78aa09ldvZJHqMPrJBZ+V6t",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -505,10 +505,10 @@
     },
     "_enabled": true,
     "_material": {
-      "__uuid__": "b741dc8e-139d-44e7-9c93-fc25f8913b40"
+      "__uuid__": "566c011c-b4c7-41d7-8edd-17f327d0b10d"
     },
-    "transitionTime": 1,
-    "_id": "84DLuAoB5OMb7fOkMTG0/4"
+    "transitionTime": 0.5,
+    "_id": "3eW+57WGVADKI2CqmsO/o5"
   },
   {
     "__type__": "cc.Node",
