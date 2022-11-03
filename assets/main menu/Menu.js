@@ -8,6 +8,7 @@ const MainScene = 'TestList.fire';
 const scenes = [
     'cases/scene1',
     'cases/scene2',
+    'cases/scene3',
     MainScene
 ]
 
