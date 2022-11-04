@@ -243,15 +243,20 @@ cc.Class({
         {
             case jsb.EventAssetsManager.ERROR_NO_LOCAL_MANIFEST:
                 this.panel.info.string = "No local manifest file found, hot update skipped.";
+                cc.log("ERROR_NO_LOCAL_MANIFEST")
                 break;
             case jsb.EventAssetsManager.ERROR_DOWNLOAD_MANIFEST:
             case jsb.EventAssetsManager.ERROR_PARSE_MANIFEST:
                 this.panel.info.string = "Fail to download manifest file, hot update skipped.";
+                cc.log("ERROR_PARSE_MANIFEST")
                 break;
             case jsb.EventAssetsManager.ALREADY_UP_TO_DATE:
                 this.panel.info.string = "Already up to date with the latest remote version.";
+                this.updateUI.active = false;
+                cc.log("ALREADY_UP_TO_DATE")
                 break;
             case jsb.EventAssetsManager.NEW_VERSION_FOUND:
+                cc.log("NEW_VERSION_FOUND")
                 this.panel.info.string = 'New version found, please try to update. (' + this._am.getTotalBytes() + ')';
                 this.panel.checkBtn.active = false;
                 this.panel.fileProgress.progress = 0;
@@ -269,6 +274,7 @@ cc.Class({
     updateCb: function (event) {
         var needRestart = false;
         var failed = false;
+        cc.log("updatecb",JSON.stringify(event));
         switch (event.getEventCode())
         {
             case jsb.EventAssetsManager.ERROR_NO_LOCAL_MANIFEST:
@@ -382,17 +388,19 @@ cc.Class({
             return;
         }
         this._am.setEventCallback(this.checkCb.bind(this));
-
+        cc.log("JS checkupdate");
         this._am.checkUpdate();
         this._updating = true;
     },
 
     hotUpdate: function () {
+        cc.log("hotupdate",this._updating,this.manifestUrl.nativeUrl);
         if (this._am && !this._updating) {
             this._am.setEventCallback(this.updateCb.bind(this));
 
             if (this._am.getState() === jsb.AssetsManager.State.UNINITED) {
                 // Resolve md5 url
+                cc.log("state uninited");
                 var url = this.manifestUrl.nativeUrl;
                 if (cc.loader.md5Pipe) {
                     url = cc.loader.md5Pipe.transformURL(url);
@@ -404,6 +412,7 @@ cc.Class({
             this._am.update();
             this.panel.updateBtn.active = false;
             this._updating = true;
+            cc.log("updating")
         }
     },
     
@@ -419,7 +428,8 @@ cc.Class({
         if (!cc.sys.isNative) {
             return;
         }
-        this._storagePath = ((jsb.fileUtils ? jsb.fileUtils.getWritablePath() : '/') + 'blackjack-remote-asset');
+        this._storagePath = ((jsb.fileUtils ? jsb.fileUtils.getWritablePath() : '/') + 'test-remote-asset');
+        cc.log(jsb.fileUtils ? jsb.fileUtils.getWritablePath() : '/');
         cc.log('Storage path for remote asset : ' + this._storagePath);
 
         // Setup your own version compare handler, versionA and B is versions in string
