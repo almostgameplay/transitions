@@ -29,7 +29,6 @@ CCEffect %{
 
 CCProgram transition %{
 
-float progress = time;
 
 uniform Transition {
   // Number of total bars/columns
@@ -71,6 +70,7 @@ float pos(int num) {
 }
 
 vec4 transition(vec2 uv) {
+  float progress = time;
   int bar = int(uv.x * (float(bars)));
   float scale = 1.0 + pos(bar) * amplitude;
   float phase = progress * scale;

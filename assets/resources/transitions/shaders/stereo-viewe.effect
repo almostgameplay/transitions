@@ -205,8 +205,8 @@ vec4 get_cross_masked(vec3 p3, float angle, vec2 corner_size, float ratio) {
   }
 }
 
-float progress = time;
 vec4 transition(vec2 uv) {
+  float progress = time;
   float a;
   vec2 p=uv.xy/vec2(1.0).xy;
   vec3 p3 = vec3(p.xy, 1.0); // for 2D matrix transforms

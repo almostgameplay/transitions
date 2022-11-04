@@ -26,7 +26,6 @@ CCEffect %{
 
 CCProgram transition %{
 
-float progress = time;
 
 uniform Transition {
   vec2 direction; // = vec2(1.0, -1.0)
@@ -38,6 +37,7 @@ uniform Transition {
 const vec2 center = vec2(0.5, 0.5);
  
 vec4 transition (vec2 uv) {
+  float progress = time;
   vec2 v = normalize(direction);
   v /= abs(v.x)+abs(v.y);
   float d = v.x * center.x + v.y * center.y;

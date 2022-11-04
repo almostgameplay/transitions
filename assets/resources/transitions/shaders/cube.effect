@@ -28,7 +28,6 @@ CCEffect %{
 
 CCProgram transition %{
 
-float progress = time;
 
 uniform Transition {
   float persp; // = 0.7
@@ -77,6 +76,7 @@ vec2 xskew (vec2 p, float persp, float center) {
 }
 
 vec4 transition(vec2 op) {
+  float progress = time;
   float uz = unzoom * 2.0*(0.5-distance(0.5, progress));
   vec2 p = -uz*0.5+(1.0+uz) * op;
   vec2 fromP = xskew(

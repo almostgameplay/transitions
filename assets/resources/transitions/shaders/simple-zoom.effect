@@ -25,7 +25,6 @@ CCEffect %{
 
 CCProgram transition %{
 
-float progress = time;
 
 uniform Transition {
   float zoom_quickness;
@@ -37,6 +36,8 @@ vec2 zoom(vec2 uv, float amount) {
 }
 
 vec4 transition (vec2 uv) {
+  float progress = time;
+
   return mix(
     getFromColor(zoom(uv, smoothstep(0.0, nQuick, progress))),
     getToColor(uv),

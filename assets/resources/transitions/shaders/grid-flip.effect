@@ -30,7 +30,6 @@ CCEffect %{
 
 CCProgram transition %{
 
-float progress = time;
 
 uniform Transition {
   vec4 bgcolor; // = vec4(0.0, 0.0, 0.0, 1.0)
@@ -66,6 +65,7 @@ float getDividerSize() {
 }
 
 vec4 transition(vec2 p) {
+  float progress = time;
   if(progress < pause) {
     float currentProg = progress / pause;
     float a = 1.0;

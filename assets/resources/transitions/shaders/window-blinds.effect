@@ -24,12 +24,13 @@ CCEffect %{
 
 CCProgram transition %{
 
-float progress = time;
 
 // Author: Fabien Benetou
 // License: MIT
 
 vec4 transition (vec2 uv) {
+  float progress = time;
+
   float t = progress;
   
   if (mod(floor(uv.y*100.*progress),2.)==0.)

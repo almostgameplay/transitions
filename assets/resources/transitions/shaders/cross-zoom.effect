@@ -25,7 +25,6 @@ CCEffect %{
 
 CCProgram transition %{
 
-float progress = time;
 
 uniform Transition {
   float strength;
@@ -68,6 +67,8 @@ vec3 crossFade(in vec2 uv, in float dissolve) {
 }
 
 vec4 transition(vec2 uv) {
+    float progress = time;
+
     vec2 texCoord = uv.xy / vec2(1.0).xy;
 
     // Linear interpolate center across center half of the image

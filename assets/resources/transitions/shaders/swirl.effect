@@ -24,7 +24,6 @@ CCEffect %{
 
 CCProgram transition %{
 
-float progress = time;
 
 // License: MIT
 // Author: Sergey Kosarevsky
@@ -33,6 +32,8 @@ float progress = time;
 
 vec4 transition(vec2 UV)
 {
+  float progress = time;
+
 	float Radius = 1.0;
 
 	float T = progress;

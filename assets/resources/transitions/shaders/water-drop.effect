@@ -26,7 +26,6 @@ CCEffect %{
 
 CCProgram transition %{
 
-float progress = time;
 
 uniform Transition {
   float amplitude; // = 30
@@ -34,6 +33,8 @@ uniform Transition {
 };
 
 vec4 transition(vec2 p) {
+  float progress = time;
+
   vec2 dir = p - vec2(.5);
   float dist = length(dir);
 

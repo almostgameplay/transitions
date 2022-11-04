@@ -35,20 +35,21 @@ uniform Transition {
   vec2 direction; // = [1, 1]
 };
 
-float aspect = 1.;//screenSize.x / screenSize.y;
-
-vec4 iMouse = vec4(
-  screenSize.x * (mod((1.0 + time * direction.x), 1.0) + 0.2 * sign(direction.x)),
-  screenSize.y * (mod((1.0 + time * direction.y), 1.0) + 0.2 * sign(direction.y)),
-  screenSize.x * (1.0 - step(0.0, direction.x)),
-  screenSize.y * (1.0 - step(0.0, direction.y))
-);
-
-
-vec2 mouse = iMouse.xy  * vec2(aspect, 1.) / screenSize.xy;
-vec2 mouseDir = normalize(abs(iMouse.zw) - iMouse.xy);
 
 vec4 transition(vec2 uv) {
+  float aspect = 1.;//screenSize.x / screenSize.y;
+
+  vec4 iMouse = vec4(
+    screenSize.x * (mod((1.0 + time * direction.x), 1.0) + 0.2 * sign(direction.x)),
+    screenSize.y * (mod((1.0 + time * direction.y), 1.0) + 0.2 * sign(direction.y)),
+    screenSize.x * (1.0 - step(0.0, direction.x)),
+    screenSize.y * (1.0 - step(0.0, direction.y))
+  );
+
+
+  vec2 mouse = iMouse.xy  * vec2(aspect, 1.) / screenSize.xy;
+  vec2 mouseDir = normalize(abs(iMouse.zw) - iMouse.xy);
+
   // vec2 uv = fragCoord * vec2(aspect, 1.) / screenSize.xy;
    
   float dist = dot(uv - mouse, mouseDir);
