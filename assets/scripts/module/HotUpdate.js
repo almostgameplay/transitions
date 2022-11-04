@@ -378,8 +378,8 @@ cc.Class({
         if (this._am.getState() === jsb.AssetsManager.State.UNINITED) {
             // Resolve md5 url
             var url = this.manifestUrl.nativeUrl;
-            if (cc.loader.md5Pipe) {
-                url = cc.loader.md5Pipe.transformURL(url);
+            if (cc.assetManager.md5Pipe) {
+                url = cc.assetManager.md5Pipe.transformURL(url);
             }
             this._am.loadLocalManifest(url);
         }
@@ -402,8 +402,8 @@ cc.Class({
                 // Resolve md5 url
                 cc.log("state uninited");
                 var url = this.manifestUrl.nativeUrl;
-                if (cc.loader.md5Pipe) {
-                    url = cc.loader.md5Pipe.transformURL(url);
+                if (cc.assetManager.md5Pipe) {
+                    url = cc.assetManager.md5Pipe.transformURL(url);
                 }
                 this._am.loadLocalManifest(url);
             }
@@ -426,6 +426,7 @@ cc.Class({
     onLoad: function () {
         // Hot update is only available in Native build
         if (!cc.sys.isNative) {
+            this.updateUI && (this.updateUI.active = false);
             return;
         }
         this._storagePath = ((jsb.fileUtils ? jsb.fileUtils.getWritablePath() : '/') + 'test-remote-asset');
