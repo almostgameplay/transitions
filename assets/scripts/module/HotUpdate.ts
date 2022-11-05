@@ -40,7 +40,7 @@ export default class HotUpdate extends cc.Component {
     _failCount;
     versionCompareHandle;
     checkCb(event: jsb.EventAssetsManager) {
-        cc.log("Code: " + event.getEventCode());
+        console.log("Code: " + event.getEventCode());
         switch (event.getEventCode()) {
             case jsb.EventAssetsManager.ERROR_NO_LOCAL_MANIFEST:
             case jsb.EventAssetsManager.ERROR_DOWNLOAD_MANIFEST:
@@ -58,7 +58,7 @@ export default class HotUpdate extends cc.Component {
     }
 
     updateCb(event: jsb.EventAssetsManager) {
-        cc.log("Code: " + event.getEventCode());
+        console.log("Code: " + event.getEventCode());
         var needRestart = false;
         var failed = false;
         switch (event.getEventCode()) {
@@ -136,7 +136,7 @@ export default class HotUpdate extends cc.Component {
 
     checkUpdate() {
         if (this._updating) {
-            cc.log("Checking or updating ...");
+            console.log("Checking or updating ...");
             return;
         }
         if (this._am.getState() === jsb.AssetsManager.State.UNINITED) {
@@ -148,7 +148,7 @@ export default class HotUpdate extends cc.Component {
             this._am.loadLocalManifest(url);
         }
         if (!this._am.getLocalManifest() || !this._am.getLocalManifest().isLoaded()) {
-            cc.log("Failed to load local manifest ...");
+            console.log("Failed to load local manifest ...");
             return;
         }
         this._am.setEventCallback(this.checkCb.bind(this));
@@ -162,7 +162,6 @@ export default class HotUpdate extends cc.Component {
 
             if (this._am.getState() === jsb.AssetsManager.State.UNINITED) {
                 // Resolve md5 url
-                cc.log("state uninited");
                 var url = this.manifestUrl.nativeUrl;
                 if (cc.assetManager["md5Pipe"]) {
                     url = cc.assetManager["md5Pipe"].transformURL(url);
@@ -173,7 +172,6 @@ export default class HotUpdate extends cc.Component {
             this._failCount = 0;
             this._am.update();
             this._updating = true;
-            cc.log("updating");
         }
     }
 
@@ -188,15 +186,15 @@ export default class HotUpdate extends cc.Component {
 
     setup() {
         this._storagePath = (jsb.fileUtils ? jsb.fileUtils.getWritablePath() : "/") + "test-remote-asset";
-        cc.log(jsb.fileUtils ? jsb.fileUtils.getWritablePath() : "/");
-        cc.log("Storage path for remote asset : " + this._storagePath);
+        console.log(jsb.fileUtils ? jsb.fileUtils.getWritablePath() : "/");
+        console.log("Storage path for remote asset : " + this._storagePath);
 
         // Setup your own version compare handler, versionA and B is versions in string
         // if the return value greater than 0, versionA is greater than B,
         // if the return value equals 0, versionA equals to B,
         // if the return value smaller than 0, versionA is smaller than B.
         this.versionCompareHandle = function (versionA, versionB) {
-            cc.log("JS Custom Version Compare: version A is " + versionA + ", version B is " + versionB);
+            console.log("JS Custom Version Compare: version A is " + versionA + ", version B is " + versionB);
             var vA = versionA.split(".");
             var vB = versionB.split(".");
             for (var i = 0; i < vA.length; ++i) {
@@ -230,21 +228,21 @@ export default class HotUpdate extends cc.Component {
             // The size of asset file, but this value could be absent.
             var size = asset.size;
             if (compressed) {
-                cc.log("Verification passed : " + relativePath);
+                console.log("Verification passed : " + relativePath);
                 return true;
             } else {
-                cc.log("Verification passed : " + relativePath + " (" + expectedMD5 + ")");
+                console.log("Verification passed : " + relativePath + " (" + expectedMD5 + ")");
                 return true;
             }
         });
 
-        cc.log("Hot update is ready, please check or directly update.");
+        console.log("Hot update is ready, please check or directly update.");
 
         if (cc.sys.os === cc.sys.OS_ANDROID) {
             // Some Android device may slow down the download process when concurrent tasks is too much.
             // The value may not be accurate, please do more test and find what's most suitable for your game.
             this._am["setMaxConcurrentTask"] && this._am["setMaxConcurrentTask"](2);
-            cc.log("Max concurrent tasks count have been limited to 2");
+            console.log("Max concurrent tasks count have been limited to 2");
         }
     }
     onDestroy() {
@@ -259,11 +257,10 @@ export default class HotUpdate extends cc.Component {
      */
     checkIfNeedDownloadFullApk(cb: any) {
         let localManifest: jsb.Manifest = this._am.getLocalManifest();
-        let remoteManifest: jsb.Manifest = this._am.getRemoteManifest();
-        cc.log("checkIfNeedDownloadFullApk", localManifest, remoteManifest);
+        console.log("checkIfNeedDownloadFullApk", localManifest.getVersion());
 
-        if (!localManifest || !remoteManifest) {
-            cb("null manifest");
+        if (!localManifest) {
+            cb && cb("null manifest");
             return;
         }
 
@@ -287,7 +284,7 @@ export default class HotUpdate extends cc.Component {
                 if (xhr.status >= 200 && xhr.status < 400) {
                     var response = xhr.responseText;
                     var data = JSON.parse(response);
-                    cc.log("remote version manifest", response);
+                    console.log("remote version manifest", response);
                     cb(null, data);
                 } else {
                     cb("xhr:get remote manifest err");
