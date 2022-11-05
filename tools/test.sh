@@ -1,7 +1,7 @@
 
-buildPath="./build/jsb-default"
+buildPath="../build/jsb-default"
 
-node ./version_generator.js -v 2.0.0 -fv 1.5.0 -u http://192.168.1.85:8000/test/remote-assets/ -s $buildPath ./build/jsb-default -d ./
+node ./version_generator.js -v 2.0.0 -fv 1.5.0 -u http://192.168.1.85:8000/test/remote-assets/ -s $buildPath -d ./
 
 # move assets/, src/, version.manifest, project.manifest to server
 
