@@ -1,7 +1,6 @@
 const { ccclass, property } = cc._decorator;
 
 export const HotUpdateEvent = "HotUpdateEvent";
-export const RemoteVersionManifestURL = "http://192.168.1.85:8000/test/remote-assets/version.manifest";
 
 var customManifestStr = JSON.stringify({
     packageUrl: "http://192.168.1.85:8000/test/remote-assets/",
@@ -291,7 +290,7 @@ export default class HotUpdate extends cc.Component {
                 }
             }
         };
-        xhr.open("GET", RemoteVersionManifestURL, true);
+        xhr.open("GET", this.manifestUrl.remoteVersionUrl, true);
         xhr.send();
     }
 }
