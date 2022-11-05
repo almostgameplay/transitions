@@ -1,7 +1,8 @@
 const { ccclass, property } = cc._decorator;
 
 export const HotUpdateEvent = "HotUpdateEvent";
-const EmptyFn = (args: any) => {};
+export const RemoteVersionManifestURL = "http://192.168.1.85:8000/test/remote-assets/version.manifest";
+
 var customManifestStr = JSON.stringify({
     packageUrl: "http://192.168.1.85:8000/test/remote-assets/",
     remoteManifestUrl: "http://192.168.1.85:8000/test/remote-assets/project.manifest",
@@ -183,8 +184,6 @@ export default class HotUpdate extends cc.Component {
             return;
         }
         this.setup();
-
-        this.checkIfNeedDownloadFullApk();
     }
 
     setup() {
@@ -258,33 +257,44 @@ export default class HotUpdate extends cc.Component {
     /**
      * 是否需要下载新apk? 大版本更新
      */
-    checkIfNeedDownloadFullApk() {
+    checkIfNeedDownloadFullApk(cb: any) {
         let localManifest: jsb.Manifest = this._am.getLocalManifest();
         let remoteManifest: jsb.Manifest = this._am.getRemoteManifest();
+        cc.log("checkIfNeedDownloadFullApk", localManifest, remoteManifest);
 
         if (!localManifest || !remoteManifest) {
-            cc.log("checkIfNeedDownloadFullApk", localManifest, remoteManifest);
+            cb("null manifest");
             return;
         }
 
-        let remoteMajor = remoteManifest.getVersion().split(".")[0];
-        let localMajor = localManifest.getVersion().split(".")[0];
-        if (remoteMajor > localMajor) {
-            console.log("need update to full apk");
-        }
+        let localVersion = localManifest.getVersion();
+
+        this.getRemoteVersionManifest((err, manifest) => {
+            if (err) {
+                cb && cb(err);
+                return;
+            }
+            let result = this.versionCompareHandle(localVersion, manifest.forceVersion);
+
+            cb && cb(null, { result, ...manifest });
+        });
     }
 
-    request(cb) {
+    getRemoteVersionManifest(cb) {
         let xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4 && xhr.status >= 200 && xhr.status < 400) {
-                var response = xhr.responseText;
-                var data = JSON.parse(response);
-                console.log(data);
-                cb(null, data);
+            if (xhr.readyState == 4) {
+                if (xhr.status >= 200 && xhr.status < 400) {
+                    var response = xhr.responseText;
+                    var data = JSON.parse(response);
+                    cc.log("remote version manifest", response);
+                    cb(null, data);
+                } else {
+                    cb("xhr:get remote manifest err");
+                }
             }
         };
-        xhr.open("GET", "http://localhost:8000/test/remote-assets/version.manifest", true);
+        xhr.open("GET", RemoteVersionManifestURL, true);
         xhr.send();
     }
 }

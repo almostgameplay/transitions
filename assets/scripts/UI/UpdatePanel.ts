@@ -2,6 +2,9 @@ const { ccclass, property } = cc._decorator;
 import HotUpdate, { HotUpdateEvent } from "../module/HotUpdate";
 @ccclass
 export default class UpdatePanel extends cc.Component {
+    @property(cc.Node)
+    panel: cc.Node = null;
+
     @property(cc.Label)
     info: cc.Label = null;
 
@@ -10,6 +13,9 @@ export default class UpdatePanel extends cc.Component {
 
     @property(cc.Node)
     updateBtn: cc.Node = null;
+
+    @property(cc.Node)
+    forceUpdateBtn: cc.Node = null;
 
     @property(cc.Node)
     close: cc.Node = null;
@@ -27,14 +33,24 @@ export default class UpdatePanel extends cc.Component {
     byteLabel: cc.Label = null;
 
     @property(HotUpdate)
-    hotUpdate = null;
+    hotUpdate: HotUpdate = null;
+
+    protected onLoad(): void {
+        this.fileProgress.progress = 0;
+        this.byteProgress.progress = 0;
+        this.panel.active = false;
+        this.forceUpdateBtn.active = false;
+        cc.director.on(HotUpdateEvent, this.handleHotUpdateEvent);
+    }
 
     start() {
         if (!cc.sys.isNative) {
-            this.node.active = false;
             return;
         }
-        cc.director.on(HotUpdateEvent, this.handleHotUpdateEvent);
+        this.checkUpdate();
+    }
+    OnClose() {
+        this.panel.active = false;
     }
     protected onDestroy(): void {
         cc.director.off(HotUpdateEvent, this.handleHotUpdateEvent);
@@ -54,14 +70,16 @@ export default class UpdatePanel extends cc.Component {
             case jsb.EventAssetsManager.ALREADY_UP_TO_DATE:
                 cc.log("ALREADY_UP_TO_DATE");
                 this.info.string = "Already up to date with the latest remote version.";
-                this.node.active = false;
+                this.panel.active = false;
                 break;
             case jsb.EventAssetsManager.NEW_VERSION_FOUND:
                 cc.log("NEW_VERSION_FOUND");
+                this.panel.active = true;
                 this.info.string = "New version found, please try to update. (" + event.getTotalBytes() + ")";
                 this.checkBtn.active = false;
                 this.fileProgress.progress = 0;
                 this.byteProgress.progress = 0;
+                this.checkForceUpdate();
                 break;
             case jsb.EventAssetsManager.UPDATE_PROGRESSION:
                 cc.log("UPDATE_PROGRESSION");
@@ -97,20 +115,72 @@ export default class UpdatePanel extends cc.Component {
         }
     };
 
-    protected onLoad(): void {
-        this.fileProgress.progress = 0;
-        this.byteProgress.progress = 0;
-    }
-
     retryUpdate() {
         this.info.string = "Retry failed Assets...";
         this.hotUpdate.retry();
     }
+    remoteManifest: any = {};
+    checkForceUpdate() {
+        this.hotUpdate.checkIfNeedDownloadFullApk((err, { result, ...manifest }) => {
+            if (err) {
+                cc.log("checkForceUpdate:" + err);
+                return;
+            }
+            this.remoteManifest = manifest;
+            //need update apk
+            if (result < 0) {
+                this.forceUpdateBtn.active = true;
+                this.updateBtn.active = false;
+                this.close.active = false;
+            }
+        });
+    }
     checkUpdate() {
         this.hotUpdate.checkUpdate();
     }
-    // update (dt) {}
-    OnClose() {
-        this.node.active = false;
+    excuteUpate() {
+        this.hotUpdate.hotUpdate();
+    }
+    _downloader: jsb.Downloader;
+    downloadApk() {
+        let apkUrl = this.remoteManifest.remoteApkUrl;
+        cc.log("download apk", apkUrl);
+        if (!apkUrl) return;
+
+        //下载文件的保存路径
+        let filePath = this.getDownloadPath();
+        this._downloader = new jsb.Downloader();
+        this._downloader.setOnTaskError((task, errorCode, errorCodeInternal, errorStr) => {
+            console.error(errorStr);
+        });
+        this._downloader.setOnTaskProgress((task, bytesReceived, totalBytesReceived, totalBytesExpected) => {
+            var str =
+                "下载大小 = " +
+                bytesReceived +
+                "," +
+                "总大小 = " +
+                totalBytesReceived +
+                "," +
+                "预期总大小 = " +
+                totalBytesExpected +
+                "," +
+                "进度 = " +
+                Math.floor((totalBytesReceived / totalBytesExpected) * 10000) / 100 +
+                "%\n";
+            console.log("progress: " + str);
+        });
+        this._downloader.setOnFileTaskSuccess((task) => {
+            console.log(task.requestURL + " apk download success " + task.storagePath);
+            this.installApk(task.storagePath);
+        });
+
+        this._downloader.createDownloadFileTask(apkUrl, filePath, "downloadapk");
+    }
+    installApk(apkPath) {
+        cc.log("installApk", apkPath);
+    }
+
+    getDownloadPath() {
+        return jsb.fileUtils.getWritablePath() + "latest.apk";
     }
 }
