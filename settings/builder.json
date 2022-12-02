@@ -17,7 +17,7 @@
   "optimizeHotUpdate": false,
   "md5Cache": true,
   "nativeMd5Cache": false,
-  "encryptJs": true,
+  "encryptJs": false,
   "xxteaKey": "0353c909-5627-42",
   "zipCompressJs": true,
   "fb-instant-games": {},
