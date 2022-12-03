@@ -1,7 +1,31 @@
-'use strict';
+"use strict";
 
+var fss = require("fs");
 var Fs = require("fire-fs");
 var Path = require("fire-path");
+var childProcess = require("child_process");
+var { shell } = require("electron");
+
+let toolDir = Path.join(__dirname, "tool");
+let localServer = Path.join(__dirname, "../../../");
+let localServerAssetDir = Path.join(__dirname, "../../remote-assets/");
+var configFile = Path.join(__dirname, "../../hconfig.json");
+
+function SaveConfig(path, data) {
+    fss.writeFile(path, data, function (error) {
+        if (error) {
+            Editor.log(error);
+            throw err;
+        }
+        Editor.log("hotupdate:saved config");
+    });
+}
+
+function ReadConfig(cb) {
+    fss.readFile(configFile, "utf8", (err, data) => {
+        cb && cb(err, data);
+    });
+}
 
 var inject_script = `
 (function () {
@@ -42,6 +66,7 @@ var inject_script = `
 module.exports = {
     load: function () {
         // 当 package 被正确加载的时候执行
+        Editor.log("hotupdate extension load");
     },
 
     unload: function () {
@@ -49,7 +74,7 @@ module.exports = {
     },
 
     messages: {
-        'editor:build-finished': function (event, target) {
+        "editor:build-finished": function (event, target) {
             var root = Path.normalize(target.dest);
             var url = Path.join(root, "main.js");
             Fs.readFile(url, "utf8", function (err, data) {
@@ -65,6 +90,66 @@ module.exports = {
                     Editor.log("SearchPath updated in built main.js for hot update");
                 });
             });
-        }
-    }
+        },
+        "open-editor"(event) {
+            Editor.Panel.open("hot-update");
+        },
+        "start-build"(event, args) {
+            Editor.log(JSON.stringify(args));
+
+            try {
+                let sh = Path.join(toolDir, "version_generator.js");
+                var { serverPath, assetPath, updateLocal } = args;
+                var param = ` -v ${args.version} -fv ${
+                    args.fversion
+                } -u ${serverPath} -s ${assetPath} -d ${localServerAssetDir} -o ${updateLocal ? 1 : 0}`;
+                childProcess.execSync("node " + sh + param);
+                Editor.Ipc.sendToPanel("hot-update", "update-status", "已生成manifest ==> " + localServerAssetDir);
+
+                SaveConfig(configFile, JSON.stringify(args));
+            } catch (e) {
+                Editor.success(e);
+                Editor.Ipc.sendToPanel("hot-update", "update-status", e);
+            }
+        },
+        "start-upload"(event, args) {
+            try {
+                let sh = Path.join(toolDir, "uploader.js");
+                var { serverPath, assetPath, stage } = args;
+                var param = ` -s ${serverPath} -a ${assetPath} -stage ${stage ? 1 : 0}`;
+                childProcess.execSync("node " + sh + param);
+                Editor.Ipc.sendToPanel(
+                    "hot-update",
+                    "update-status",
+                    "资源上传成功!" + (stage ? `${localServerAssetDir}stage/` : serverPath)
+                );
+            } catch (e) {
+                Editor.success(e);
+                Editor.Ipc.sendToPanel("hot-update", "update-status", e);
+            }
+        },
+        "start-local"(event, args) {
+            try {
+                Editor.log("start-local");
+                var childProcess = require("child_process");
+                var port = args.port || 8000;
+                childProcess.exec(
+                    `cd ${localServer} && python -m SimpleHTTPServer ${port}`,
+                    function (err, stdout, stderr) {
+                        console.log(err, stderr, stdout);
+                    }
+                );
+                shell.openExternal(`http://localhost:${port}/petmarket/`);
+            } catch (error) {
+                Editor.success(e);
+            }
+        },
+        "panel-ready"(event, args) {
+            if (event.reply) {
+                ReadConfig((err, config) => {
+                    event.reply(err, config);
+                });
+            }
+        },
+    },
 };

@@ -1,0 +1,19 @@
+{
+  "name": "encrypt",
+  "version": "0.0.1",
+  "description": "The package template for getting started.",
+  "author": "Cocos Creator",
+  "main": "main.js",
+  "main-menu": {
+    "i18n:MAIN_MENU.package.title/encrypt/open": {
+      "message": "encrypt:open"
+    }
+  },
+  "panel": {
+    "main": "panel/index.js",
+    "type": "dockable",
+    "title": "encrypt",
+    "width": 1000,
+    "height": 600
+  }
+}

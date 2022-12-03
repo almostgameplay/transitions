@@ -1,7 +1,19 @@
 {
-  "name": "hot-update",
-  "version": "0.0.1",
-  "description": "用于热更新插件",
-  "author": "Cocos Creator",
-  "main": "main.js"
+    "name": "hot-update",
+    "version": "0.0.1",
+    "description": "用于热更新插件",
+    "author": "Cocos Creator",
+    "main": "main.js",
+    "main-menu": {
+        "HotUpdate/open": {
+            "message": "hot-update:open-editor"
+        }
+    },
+    "panel": {
+        "main": "panel/index.js",
+        "type": "dockable",
+        "title": "HotUpdate",
+        "width": 1000,
+        "height": 600
+    }
 }
