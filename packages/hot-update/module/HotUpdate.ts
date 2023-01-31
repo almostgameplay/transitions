@@ -1,8 +1,9 @@
 const { ccclass, property, menu } = cc._decorator;
 
+export const HotUpdateMode = "HotupdateMode";
 export const HotUpdateEvent = "HotUpdateEvent";
 export const HotUpdateSearchPathKey = "HotUpdateSearchPaths";
-export const PackageUrl = "http://192.168.1.85:8000/petmarket/remote-assets/";
+import { PackageTestUrl, PackageUrl } from "./Constant";
 
 var customManifestStr = JSON.stringify({
     packageUrl: PackageUrl,
@@ -29,8 +30,10 @@ var customManifestStr = JSON.stringify({
 @ccclass
 @menu("HotUpdate/HotUpdate")
 export default class HotUpdate extends cc.Component {
-    @property(cc.Asset)
-    manifestUrl = null;
+    // @property(cc.Asset)
+    // manifestUrl = null;
+    // @property(cc.Asset)
+    // testManifestUrl = null;
 
     _updating = false;
     _canRetry = false;
@@ -41,6 +44,7 @@ export default class HotUpdate extends cc.Component {
     _am: jsb.AssetsManager;
     _failCount;
     versionCompareHandle;
+    _debugMode = false;
     checkCb(event: jsb.EventAssetsManager) {
         console.log("Code: " + event.getEventCode());
         switch (event.getEventCode()) {
@@ -53,6 +57,11 @@ export default class HotUpdate extends cc.Component {
             default:
                 return;
         }
+        // console.log("manifest searchpaths", JSON.stringify(this._am.getLocalManifest().getSearchPaths()));
+        // console.log("jsb searchpaths", JSON.stringify(jsb.fileUtils.getSearchPaths()));
+        let localManifest: jsb.Manifest = this._am.getLocalManifest();
+        console.log("localmanifest", localManifest.getVersionFileUrl());
+
         cc.director.emit(HotUpdateEvent, event);
         this._am.setEventCallback(null);
         this._checkListener = null;
@@ -137,15 +146,31 @@ export default class HotUpdate extends cc.Component {
             this._am.downloadFailedAssets();
         }
     }
-
-    checkUpdate() {
+    localAssets;
+    checkUpdate(){
+        if(this.localAssets){
+            this._checkUpdate()
+            return;
+        }
+        cc.resources.load(["project",'testProject'],(err,assets) =>{
+            if(err){
+                console.log("load local manifest err:",err);
+                return;
+            }
+            this.localAssets = assets;
+            this._checkUpdate();
+        })
+    }
+    _checkUpdate() {
         if (this._updating) {
             console.log("Checking or updating ...");
             return;
         }
+        // let manifestUrl = this._debugMode ? this.testManifestUrl : this.manifestUrl;
+        let manifestUrl = this._debugMode?this.localAssets[1]:this.localAssets[0];
         if (this._am.getState() === jsb.AssetsManager.State.UNINITED) {
             // Resolve md5 url
-            var url = this.manifestUrl.nativeUrl;
+            var url = manifestUrl.nativeUrl;
             if (cc.assetManager["md5Pipe"]) {
                 url = cc.assetManager["md5Pipe"].transformURL(url);
             }
@@ -163,10 +188,12 @@ export default class HotUpdate extends cc.Component {
     hotUpdate() {
         if (this._am && !this._updating) {
             this._am.setEventCallback(this.updateCb.bind(this));
+            // let manifestUrl = this._debugMode ? this.testManifestUrl : this.manifestUrl;
+            let manifestUrl = this._debugMode?this.localAssets[1]:this.localAssets[0];
 
             if (this._am.getState() === jsb.AssetsManager.State.UNINITED) {
                 // Resolve md5 url
-                var url = this.manifestUrl.nativeUrl;
+                var url = manifestUrl.nativeUrl;
                 if (cc.assetManager["md5Pipe"]) {
                     url = cc.assetManager["md5Pipe"].transformURL(url);
                 }
@@ -190,7 +217,10 @@ export default class HotUpdate extends cc.Component {
     }
 
     setup() {
-        this._storagePath = (jsb.fileUtils ? jsb.fileUtils.getWritablePath() : "/") + "test-remote-asset";
+        this._debugMode = !!localStorage.getItem(HotUpdateMode);
+        this._storagePath =
+            (jsb.fileUtils ? jsb.fileUtils.getWritablePath() : "/") +
+            (this._debugMode ? "test-remote-asset" : "remote-asset");
         console.log(jsb.fileUtils ? jsb.fileUtils.getWritablePath() : "/");
         console.log("Storage path for remote asset : " + this._storagePath);
 
@@ -300,7 +330,8 @@ export default class HotUpdate extends cc.Component {
                 }
             }
         };
-        var url = PackageUrl + "version.manifest";
+        var url = this._debugMode ? PackageTestUrl : PackageUrl;
+        url += "version.manifest";
         xhr.open("GET", url, true);
         xhr.send();
     }
@@ -323,6 +354,27 @@ export default class HotUpdate extends cc.Component {
             //只有当前版本与最新apk版本相同时才清理 result == 0;
             let result = this.versionCompareHandle(localVersion, manifest.forceVersion);
 
+            cb && cb(null, { result });
+        });
+    }
+    checkIfNeedRollBack(cb: any) {
+        let localManifest: jsb.Manifest = this._am.getLocalManifest();
+        console.log("localmanifest", JSON.stringify(localManifest));
+        if (!localManifest) {
+            cb && cb("null manifest");
+            return;
+        }
+
+        let localVersion = localManifest.getVersion();
+
+        this.getRemoteVersionManifest((err, manifest) => {
+            if (err) {
+                cb && cb(err);
+                return;
+            }
+            //只有当前版本与最新apk版本相同时才清理 result == 0;
+            let result = this.versionCompareHandle(localVersion, manifest.forceVersion);
+            console.log("remotemanifest", JSON.stringify(manifest));
             cb && cb(null, { result });
         });
     }

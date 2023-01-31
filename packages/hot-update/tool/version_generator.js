@@ -27,8 +27,10 @@ var testManifest = {
 var src = "./jsb/";
 
 var updateLocal = 0;
-var localManifest = path.join(__dirname, "../../../assets/scripts/module", "project.manifest");
-var localTestManifest = path.join(__dirname, "../../../assets/scripts/module", "testProject.manifest");
+// var localManifest = path.join(__dirname, "../../../assets/scripts/module", "project.manifest");
+// var localTestManifest = path.join(__dirname, "../../../assets/scripts/module", "testProject.manifest");
+var localManifest = path.join(__dirname, "../../../assets/resources", "project.manifest");
+var localTestManifest = path.join(__dirname, "../../../assets/resources", "testProject.manifest");
 
 var dest = "./remote-assets/release/";
 var testDest = "./remote-assets/stage/";

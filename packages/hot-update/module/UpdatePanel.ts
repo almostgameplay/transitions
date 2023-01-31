@@ -1,5 +1,5 @@
 const { ccclass, property, menu } = cc._decorator;
-import HotUpdate, { HotUpdateEvent } from "./HotUpdate";
+import HotUpdate, { HotUpdateEvent, HotUpdateMode } from "./HotUpdate";
 @ccclass
 @menu("HotUpdate/UpdatePanel")
 export default class UpdatePanel extends cc.Component {
@@ -36,6 +36,8 @@ export default class UpdatePanel extends cc.Component {
     @property(HotUpdate)
     hotUpdate: HotUpdate = null;
 
+    debugNode: cc.Node;
+
     protected onLoad(): void {
         this.fileProgress.progress = 0;
         this.byteProgress.progress = 0;
@@ -43,8 +45,32 @@ export default class UpdatePanel extends cc.Component {
         this.forceUpdateBtn.active = false;
         cc.game.addPersistRootNode(this.node);
         cc.director.on(HotUpdateEvent, this.handleHotUpdateEvent);
+
+        this.bindEvent(this.close, "OnClose");
+        this.bindEvent(this.checkBtn, "checkUpdate");
+        this.bindEvent(this.updateBtn, "excuteUpate");
+        this.bindEvent(this.forceUpdateBtn, "downloadApk");
+        this.debugNode = this.node.getChildByName("debug");
+
+        if(this.debugNode){
+            this.bindEvent(this.debugNode, "swithHotUpdateMode");
+            this.updateDebugUI();
+        }
     }
 
+    bindEvent(node, hanlder) {
+        var button: cc.Button = node.getComponent(cc.Button);
+        if (!button || button.clickEvents.length > 0) {
+            return;
+        }
+
+        var clickEventHandler = new cc.Component.EventHandler();
+        clickEventHandler.target = this.node; // 这个 node 节点是你的事件处理代码组件所属的节点
+        clickEventHandler.component = "UpdatePanel"; // 这个是代码文件名
+        clickEventHandler.handler = hanlder;
+
+        button.clickEvents.push(clickEventHandler);
+    }
     start() {
         if (!cc.sys.isNative) {
             return;
@@ -77,7 +103,7 @@ export default class UpdatePanel extends cc.Component {
             case jsb.EventAssetsManager.NEW_VERSION_FOUND:
                 console.log("NEW_VERSION_FOUND");
                 this.panel.active = true;
-                this.info.string = "New version found, please try to update. (" + event.getTotalBytes() + ")";
+                this.info.string = "New version found, please try to update. (" + event.getTotalBytes() / 1000+ "k)";
                 this.checkBtn.active = false;
                 this.fileProgress.progress = 0;
                 this.byteProgress.progress = 0;
@@ -89,7 +115,7 @@ export default class UpdatePanel extends cc.Component {
                 this.fileProgress.progress = event.getPercentByFile();
 
                 this.fileLabel.string = event.getDownloadedFiles() + " / " + event.getTotalFiles();
-                this.byteLabel.string = event.getDownloadedBytes() + " / " + event.getTotalBytes();
+                this.byteLabel.string = event.getDownloadedBytes() / 1000 + "k / " + event.getTotalBytes()/1000+'k';
 
                 var msg = event.getMessage();
                 if (msg) {
@@ -198,5 +224,18 @@ export default class UpdatePanel extends cc.Component {
 
     getDownloadPath() {
         return jsb.fileUtils.getWritablePath() + "latest.apk";
+    }
+
+    swithHotUpdateMode() {
+        let preMode = !!localStorage.getItem(HotUpdateMode);
+        preMode = !preMode;
+        localStorage.setItem(HotUpdateMode, preMode ? "1" : "");
+        console.log("currentMode", preMode ? "debug" : "release");
+
+        this.updateDebugUI();
+    }
+    updateDebugUI() {
+        let preMode = !!localStorage.getItem(HotUpdateMode);
+        this.debugNode.getComponentInChildren(cc.Label).string = "debug:" + (preMode ? "on" : "off");
     }
 }

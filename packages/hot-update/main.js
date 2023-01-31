@@ -105,7 +105,8 @@ module.exports = {
                 } -u ${serverPath} -s ${assetPath} -d ${localServerAssetDir} -o ${updateLocal ? 1 : 0}`;
                 childProcess.execSync("node " + sh + param);
                 Editor.Ipc.sendToPanel("hot-update", "update-status", "已生成manifest ==> " + localServerAssetDir);
-
+                Editor.assetdb.refresh("db://assets/resources/project.manifest");
+                Editor.assetdb.refresh("db://assets/resources/testProject.manifest");
                 SaveConfig(configFile, JSON.stringify(args));
             } catch (e) {
                 Editor.success(e);
