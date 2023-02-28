@@ -1,0 +1,1 @@
+注意节点混合模式，  one/one_minus_src_color

@@ -294,7 +294,7 @@ export default class BaseAssembler extends cc.Assembler {
         if (CC_TEST) return;
 
         if (!frame._original && cc.dynamicAtlasManager && frame._texture.packable) {
-            let packedFrame = cc.dynamicAtlasManager.insertSpriteFrame(frame);
+            let packedFrame = cc.dynamicAtlasManager.insertSpriteFrame(frame) as any;
             if (packedFrame) {
                 frame._setDynamicAtlasFrame(packedFrame);
             }
