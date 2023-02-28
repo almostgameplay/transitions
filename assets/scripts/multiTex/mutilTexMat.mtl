@@ -1,0 +1,18 @@
+{
+  "__type__": "cc.Material",
+  "_name": "mutilTexMat",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "ad62052a-6fff-438c-8fd9-d93e8df641a0"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "defines": {
+        "USE_TEXTURE": true
+      },
+      "props": {}
+    }
+  }
+}
