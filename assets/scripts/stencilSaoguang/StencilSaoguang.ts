@@ -1,6 +1,5 @@
 // 模板测试知识点可参考 https://forum.cocos.org/t/topic/124384，或者 learnOpenGl
 
-import { cx_CacheData } from "../../scripts/Cx_Frame/frame/DataConfig/Game/Data";
 import saoGuang from "../saoguang/saoGuang";
 // effect设置stencil无效？
 // cocos stencil 默认继承STENCIL_INHERIT，需要手动恢复
@@ -32,7 +31,7 @@ export default class StencilSaoguang extends cc.Component {
             this.lightSweepByStencil(v);
         });
     }
-    lightSweepByStencil(sweepArea:cc.Node) {
+    lightSweepByStencil(sweepArea: cc.Node) {
         StencilSaoguang.stencilRef++;
         StencilSaoguang.stencilRef %= 1000;
         var sref = StencilSaoguang.stencilRef;
@@ -42,18 +41,18 @@ export default class StencilSaoguang extends cc.Component {
         // 是否过滤掉label？
         let crc = [];
         let rc = sweepArea.getComponent(cc.RenderComponent);
-        if(rc){
+        if (rc) {
             crc.push(rc);
         }
         // 只处理第一层子节点
         for (let index = 0; index < sweepArea.childrenCount; index++) {
             const element = sweepArea.children[index];
             let isLabel = element.getComponent(cc.RenderComponent) instanceof cc.Label;
-            if(element.activeInHierarchy && element.getComponent(cc.RenderComponent) && !isLabel){
+            if (element.activeInHierarchy && element.getComponent(cc.RenderComponent) && !isLabel) {
                 crc.push(element.getComponent(cc.RenderComponent));
             }
         }
-        if(!crc.length) return;
+        if (!crc.length) return;
 
         crc.forEach((element) => {
             _changedRenderCompsCache.push(element);
@@ -67,7 +66,7 @@ export default class StencilSaoguang extends cc.Component {
         let rect = sweepArea.getBoundingBoxToWorld();
         let stencilNode = cc.instantiate(this.sweepTemplate);
         stencilNode.active = true;
-        if(crc.length === 1){
+        if (crc.length === 1) {
             // stencilNode.setParent(crc[0].node);
             stencilNode.height = crc[0].node.height;
             stencilNode.width = crc[0].node.width;
@@ -79,13 +78,13 @@ export default class StencilSaoguang extends cc.Component {
         stencilNode.setParent(sweepArea);
 
         stencilNode.position = cc.Vec3.ZERO;
-        this.setSaoguangParams(stencilNode,sweepArea.uuid);
+        this.setSaoguangParams(stencilNode, sweepArea.uuid);
         // 官方stencilTest序列化有问题，不能再effect改
         // 开模板测试
         let s2 = stencilNode.getComponent(cc.RenderComponent);
         this.doStencilTest(s2, sref);
         // 关闭模板测试
-        stencilNode.children[0].getComponent(cc.RenderComponent).getMaterial(0).setStencilEnabled(0,0)
+        stencilNode.children[0].getComponent(cc.RenderComponent).getMaterial(0).setStencilEnabled(0, 0)
 
         this._stencilNodesCache[sweepArea.uuid] = stencilNode;
     }
@@ -141,7 +140,7 @@ export default class StencilSaoguang extends cc.Component {
 
     }
 
-    setSaoguangParams(sNode,uuid){
+    setSaoguangParams(sNode, uuid) {
         let js = sNode.getComponent(saoGuang);
         if (!js) {
             js = sNode.addComponent(saoGuang);
@@ -150,10 +149,7 @@ export default class StencilSaoguang extends cc.Component {
         params = params ? params.split("|")[0] : null;
         if (params && params !== "") {
             let arr = params.split(";");
-            if (arr.length === 1) {
-                params = cx_CacheData.levelTxSaoGuangTypeObj[params];
-                arr = params.split(";");
-            }
+
             if (arr.length > 1) {
                 let lineWidth = parseFloat(arr[0]);
                 let time = parseFloat(arr[1]);
@@ -171,9 +167,9 @@ export default class StencilSaoguang extends cc.Component {
     }
     _params = null
     _sweepArea = null;
-	playSaoGuang(node: cc.Node, params?: string, isDiGui = true, st: number = 0) {
+    playSaoGuang(node: cc.Node, params?: string, isDiGui = true, st: number = 0) {
         this._params = params;
         this.lightSweepNodes([node]);
-	}
+    }
 
 }
