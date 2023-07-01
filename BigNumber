@@ -1,0 +1,126 @@
+const ASC_STR = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const ASC_Len = 26;
+const PRECISION_BITS = 3;
+const EPSILON = 0.0000001;
+const VALUE_PER_BIT = 1000;
+
+const _tmpValue = { num: 0, unit: "" };
+const EmptyValue = { num: 0, unit: "" };
+class BigNumber {
+  static _unitCache = new Map();
+  static unitToSeq(unit) {
+    if (!unit) {
+      return -1;
+    }
+    if (this._unitCache.has(unit)) {
+      return this._unitCache.get(unit);
+    }
+    unit = unit.toUpperCase();
+    let unitBits = unit.split("");
+    let lastBit = unitBits.pop();
+    let unitBitsLen = unitBits.length;
+    let bitSeq = ASC_STR.indexOf(lastBit);
+    bitSeq += ASC_Len * unitBitsLen;
+
+    this._unitCache.set(unit, bitSeq);
+    return bitSeq;
+  }
+
+  static seqToUnit(seq) {
+    if (seq < 0) {
+      return "";
+    }
+    seq |= 0;
+    let a = (seq / ASC_Len) | 0;
+    let b = seq % ASC_Len;
+    let unit = ASC_STR[b];
+    for (let index = 0; index < a; index++) {
+      unit = "A" + unit;
+    }
+    return unit;
+  }
+  static formatIValue(v1) {
+    if (!v1) {
+      return "";
+    }
+    let seq = this.unitToSeq(v1.unit);
+    this.convertToValue(v1.num, seq);
+    v1.num = _tmpValue.num;
+    v1.unit = _tmpValue.unit;
+
+    if (v1.num > 100) {
+      return (v1.num | 0) + v1.unit;
+    } else if (v1.num > 10) {
+      return v1.num.toFixed(1) + v1.unit;
+    } else {
+      return v1.num.toFixed(2) + v1.unit;
+    }
+  }
+  static convertToValue(num, seq = -1, signFlag = 1) {
+    num = Number(num);
+    if (isNaN(num)) {
+      return EmptyValue;
+    }
+    if (num < 0) {
+      return this.convertToValue(-num, seq, -1);
+    }
+    if (num < 1 && seq >= 0) {
+      seq--;
+      num *= VALUE_PER_BIT + EPSILON;
+      return this.convertToValue(num, seq);
+    } else if (num >= VALUE_PER_BIT) {
+      seq++;
+      num /= VALUE_PER_BIT;
+      return this.convertToValue(num, seq);
+    }
+    _tmpValue.num = num * signFlag;
+    _tmpValue.unit = this.seqToUnit(seq);
+    return _tmpValue;
+  }
+  static addValue(v1, v2, signFlag = 1) {
+    if (!v1 || !v2) {
+      return EmptyValue;
+    }
+    let v1Seq = this.unitToSeq(v1.unit);
+    let v2Seq = this.unitToSeq(v2.unit);
+    let offsetSeq = v2Seq - v1Seq;
+    if (Math.abs(offsetSeq) > PRECISION_BITS) {
+      return v1Seq > v2Seq ? v1 : v2;
+    }
+
+    let num =
+      v1.num + signFlag * v2.num * Math.pow(VALUE_PER_BIT, offsetSeq) + EPSILON;
+
+    return this.convertToValue(num, v1Seq);
+  }
+  static substractValue(v1, v2) {
+    return this.addValue({ num: -v2.num, unit: v2.unit }, v1);
+  }
+
+  static multiValue(v1, v2) {
+    if (!v1 || !v2) {
+      return EmptyValue;
+    }
+    let v1Seq = this.unitToSeq(v1.unit);
+    let v2Seq = this.unitToSeq(v2.unit);
+    let num = v1.num * v2.num;
+    let seq = v1Seq + v2Seq + 1;
+    return this.convertToValue(num, seq);
+  }
+  static ratioOfValue(v1, v2) {
+    if (!v1 || !v2) {
+      return EmptyValue;
+    }
+    let v1Seq = this.unitToSeq(v1.unit);
+    let v2Seq = this.unitToSeq(v2.unit);
+
+    let offsetSeq = v2Seq - v1Seq;
+
+    if (Math.abs(offsetSeq) > PRECISION_BITS) {
+      return v2Seq > v1Seq ? 0 : Math.pow(VALUE_PER_BIT, offsetSeq);
+    }
+
+    let num1 = v1.num * Math.pow(VALUE_PER_BIT, -offsetSeq);
+    return num1 / v2.num;
+  }
+}
