@@ -6,8 +6,10 @@ const VALUE_PER_BIT = 1000;
 
 const _tmpValue = { num: 0, unit: "" };
 const EmptyValue = { num: 0, unit: "" };
-class BigNumber {
+class Test {
   static _unitCache = new Map();
+  static _seqCache = new Map();
+  //sep start A with 0, AA 26, AAA 26 * 26
   static unitToSeq(unit) {
     if (!unit) {
       return -1;
@@ -20,7 +22,11 @@ class BigNumber {
     let lastBit = unitBits.pop();
     let unitBitsLen = unitBits.length;
     let bitSeq = ASC_STR.indexOf(lastBit);
-    bitSeq += ASC_Len * unitBitsLen;
+
+    for (let index = 1; index <= unitBitsLen; index++) {
+      const element = unitBits[unitBitsLen - index];
+      bitSeq += (ASC_STR.indexOf(element) + 1) * Math.pow(26, index);
+    }
 
     this._unitCache.set(unit, bitSeq);
     return bitSeq;
@@ -30,14 +36,25 @@ class BigNumber {
     if (seq < 0) {
       return "";
     }
+    if (this._seqCache.has(seq)) {
+      return this._seqCache.get(seq);
+    }
+
     seq |= 0;
     let a = (seq / ASC_Len) | 0;
     let b = seq % ASC_Len;
-    let unit = ASC_STR[b];
-    for (let index = 0; index < a; index++) {
-      unit = "A" + unit;
+    //有高位时，A表示占位
+
+    let unit = ASC_STR[b] || "";
+    if (a > 0) {
+      unit = this.seqToUnit(a - 1) + unit;
     }
+
+    this._seqCache.set(unit, unit);
     return unit;
+  }
+  static bitsToSeq(bit) {
+    return bit - 1;
   }
   static formatIValue(v1) {
     if (!v1) {
@@ -101,10 +118,12 @@ class BigNumber {
     if (!v1 || !v2) {
       return EmptyValue;
     }
-    let v1Seq = this.unitToSeq(v1.unit);
-    let v2Seq = this.unitToSeq(v2.unit);
+    // this seq means how many unit bits, A == 1,Z == 26
+    let v1Seq = this.unitToSeq(v1.unit) + 1;
+    let v2Seq = this.unitToSeq(v2.unit) + 1;
+
     let num = v1.num * v2.num;
-    let seq = v1Seq + v2Seq + 1;
+    let seq = v1Seq + v2Seq - 1;
     return this.convertToValue(num, seq);
   }
   static ratioOfValue(v1, v2) {
